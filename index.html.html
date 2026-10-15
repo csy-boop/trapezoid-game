@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>梯形面積｜自己拼拼睇</title>
+<style>
+:root{--ink:#3b3a5a;--muted:#7a7896;--pri:#6c7cff;--pri-l:#e4e8ff;--pink:#ff7aa8;--org:#ffb04a;--org-l:#fff0d9;--grn:#3ccb8e;--grn-l:#d9f7ea;--sky:#5bc8ff;--yel:#ffd54a;--red:#ff5d6c;--top:#e5338c;--bot:#7a3ff2;--red-l:#ffe3e6}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Noto Sans CJK HK","PingFang HK","Microsoft JhengHei","Heiti TC",sans-serif;color:var(--ink);
+ background:linear-gradient(160deg,#fff4d9 0%,#ffe6f0 45%,#def2ff 100%);display:flex;flex-direction:column;overflow:hidden;font-size:clamp(15px,1.5vw,26px)}
+header{display:flex;align-items:center;gap:1em;padding:.5em 1.1em;background:#fff;border-bottom:4px solid var(--pri);box-shadow:0 .2em .8em rgba(80,70,140,.15);flex:0 0 auto}
+.logo{display:flex;align-items:center;gap:.5em;font-weight:900;font-size:1.3em;white-space:nowrap}
+.logo b{background:linear-gradient(90deg,var(--pri),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav{display:flex;gap:.4em;flex:1}
+nav button{font:inherit;font-weight:800;color:var(--muted);background:#f3f1ff;border:0;border-radius:999px;padding:.4em 1.2em;cursor:pointer}
+nav button.on{background:var(--pri);color:#fff;box-shadow:0 .2em 0 #4b58d6}
+.starbox{font-weight:900;background:var(--yel);border-radius:999px;padding:.3em .9em;color:#7a5400;box-shadow:0 .15em 0 #e0b020}
+.mini{font:inherit;font-weight:700;background:#f3f1ff;border:0;border-radius:999px;padding:.35em .8em;cursor:pointer;color:var(--ink)}
+main{flex:1;min-height:0;position:relative}
+.panel{position:absolute;inset:0;padding:.7em 1em;display:none}
+.panel.on{display:block}
+.btn{font:inherit;font-weight:800;border:0;border-radius:.9em;padding:.5em 1.1em;cursor:pointer;background:var(--pri);color:#fff;box-shadow:0 .22em 0 #4b58d6}
+.btn:active:not(:disabled){transform:translateY(.15em);box-shadow:none}
+.btn.o{background:var(--org);box-shadow:0 .22em 0 #d98a1f;color:#5a3600}
+.btn.g{background:var(--grn);box-shadow:0 .22em 0 #229e69}
+.btn.y{background:var(--yel);box-shadow:0 .22em 0 #e0b020;color:#6a4a00}
+.btn.gray{background:#b9b7d3;box-shadow:0 .22em 0 #9391b3}
+.btn.big{font-size:1.15em;padding:.55em 1.4em}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.card{background:#fff;border-radius:1.1em;border:3px solid #fff;box-shadow:0 .25em 1em rgba(80,70,140,.16);padding:.7em .9em}
+.guide{display:flex;align-items:flex-end;gap:.5em}
+.guide .mas{flex:0 0 4.2em;width:4.2em}.guide .mas svg{width:100%;display:block;overflow:visible}
+.guide .bub{position:relative;background:#fff;border:3px solid var(--pri);border-radius:1em;padding:.5em .8em;font-weight:700;line-height:1.5;flex:1;min-height:3em}
+.guide .bub:before{content:"";position:absolute;left:-.62em;bottom:1em;width:.9em;height:.9em;background:#fff;border-left:3px solid var(--pri);border-bottom:3px solid var(--pri);transform:rotate(45deg)}
+.bounce svg{animation:bounce .6s ease 2}.wobble svg{animation:wob .5s ease 1}
+@keyframes bounce{40%{transform:translateY(-14px) rotate(-4deg)}70%{transform:translateY(0) rotate(3deg)}}
+@keyframes wob{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+/* stage 1 */
+.s1{display:grid;grid-template-columns:minmax(0,1fr) 26em;gap:.9em;height:100%}
+.cv{position:relative;border-color:var(--sky);padding:.3em}
+.cv canvas{width:100%;height:100%;display:block;border-radius:.8em;touch-action:none}
+.rcol{display:flex;flex-direction:column;gap:.55em;overflow:auto;min-height:0;padding:.2em}
+.stepper{display:flex;gap:.2em}
+.stepper i{font-style:normal;flex:1;height:1.7em;border-radius:999px;background:#fff;color:var(--muted);font-weight:900;font-size:.8em;display:flex;align-items:center;justify-content:center;border:2px solid #e3e1f5}
+.stepper i.done{background:var(--grn);border-color:var(--grn);color:#fff}
+.stepper i.cur{background:var(--pri);border-color:var(--pri);color:#fff;transform:scale(1.18);box-shadow:0 .15em 0 #4b58d6}
+.stitle{font-size:1.15em;font-weight:900;color:#d98a1f}
+.blk{display:none}.blk.on{display:block;animation:pop .4s}
+.pick{display:none;gap:.4em}.pick.on{display:flex}
+.pick button{flex:1;font:inherit;font-weight:900;border:3px solid #fff;background:#fff;border-radius:.9em;padding:.3em .2em;cursor:pointer;box-shadow:0 .15em 0 #cfcdea;color:var(--ink);line-height:1.2}
+.pick button small{display:block;font-weight:700;color:var(--muted);font-size:.62em}
+.pick button.on{border-color:var(--pri);background:var(--pri-l)}.pick button.done{background:var(--grn-l)}
+.row{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;align-items:center}
+.opts1{display:grid;gap:.4em}
+.o1{font:inherit;font-weight:800;text-align:left;border:3px solid #fff;background:#fff;border-radius:.8em;padding:.45em .8em;cursor:pointer;color:var(--ink);box-shadow:0 .15em 0 #e8d8b8}
+.o1.ok{background:var(--grn);color:#fff;border-color:var(--grn)}
+.o1.no{background:var(--red-l);color:#c0394a;border-color:var(--red);animation:shake .4s}
+.barm{margin:.2em 0 .6em}.barm .sg{display:flex;height:2.2em;border-radius:.6em;overflow:hidden;font-weight:900;color:#fff}.barm .sg div{display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:.9em}.barm .br{border:3px solid var(--ink);border-top:0;height:.6em;margin-top:.2em;border-radius:0 0 .5em .5em}.barm .tot{text-align:center;font-weight:900;margin-top:.1em}
+.frow{display:flex;align-items:center;gap:.4em;margin:.4em 0;font-weight:800;line-height:1.4;flex-wrap:wrap;opacity:.35}
+.frow.on{opacity:1}
+.frow input{font:inherit;font-weight:900;width:4.2em;text-align:center;border:3px solid var(--pri);border-radius:.6em;padding:.15em;color:var(--ink)}
+.frow input.good{border-color:var(--grn);background:var(--grn-l)}.frow input.bad{border-color:var(--red);background:var(--red-l);animation:shake .4s}
+.frow .u{color:var(--muted);font-size:.85em}.frow .ck{font-size:.8em;padding:.2em .7em}
+.cloze{display:flex;flex-wrap:wrap;gap:.3em;align-items:center;font-weight:900;justify-content:center;margin:.4em 0}
+.cloze select{font:inherit;font-weight:800;border:3px solid var(--pri);border-radius:.6em;padding:.15em .2em;background:#fff;color:var(--ink)}
+.cloze select.good{border-color:var(--grn);background:var(--grn-l)}.cloze select.bad{border-color:var(--red);background:var(--red-l)}
+.final{background:var(--yel);border-radius:1em;padding:.7em;text-align:center;font-weight:900;font-size:1.15em;line-height:1.6}
+/* stage 2 */
+.setup,.result{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8em;text-align:center}
+.setup h2,.result h2{font-size:1.8em;background:linear-gradient(90deg,var(--pink),var(--pri));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result{display:none}
+.chip{font:inherit;font-weight:900;border:3px solid #fff;background:#fff;border-radius:.9em;padding:.4em 1em;cursor:pointer;color:var(--ink);box-shadow:0 .18em 0 #cfcdea}
+.chip.on{border-color:var(--pri);background:var(--pri-l);box-shadow:0 .18em 0 var(--pri)}
+.chip.lvl{width:13em;text-align:left;line-height:1.45}.chip.lvl b{display:block}.chip.lvl small{color:var(--muted);font-weight:600}
+.hint{color:var(--muted);font-weight:700}
+.play{display:none;height:100%;grid-template-rows:auto 1fr;gap:.55em}
+.score{display:flex;gap:.5em}
+.team{flex:1;background:#fff;border-radius:1em;padding:.25em .7em;border:4px solid #fff;display:flex;align-items:center;gap:.5em;font-weight:900}
+.team .tm{width:2.3em;flex:0 0 2.3em}.team .tm svg{width:100%;display:block}
+.team .nm{flex:1;line-height:1.15}.team .pt{font-size:1.5em;color:var(--pri)}
+.team.act{transform:scale(1.04);border-color:var(--org);background:var(--org-l)}
+.qwrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:.9em;min-height:0}
+.qleft{display:flex;flex-direction:column;gap:.4em;min-height:0}
+.qtitle{font-weight:900;font-size:1.05em;line-height:1.4}
+.qtitle .lv{display:inline-block;background:var(--pri);color:#fff;border-radius:.6em;padding:0 .5em;margin-right:.4em;font-size:.85em}
+.qtitle small{display:block;color:var(--muted);font-weight:700;font-size:.8em}
+.qright{display:flex;flex-direction:column;gap:.55em;min-height:0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.5em}
+.opt{font:inherit;font-weight:900;font-size:1.2em;border:4px solid #fff;border-radius:1em;padding:.55em .3em;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 .2em 0 #cfcdea}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt.right{background:var(--grn);color:#fff;border-color:var(--grn)}.opt.wrong{background:var(--red);color:#fff;border-color:var(--red)}
+.fb{flex:1;overflow:auto;background:#fff;border-radius:1em;padding:.5em .8em;line-height:1.6;font-weight:700}
+.fb b{color:var(--pri)}
+.podium{display:flex;gap:.9em;align-items:flex-end}
+.pod{width:9em;border-radius:1.2em 1.2em 0 0;padding:.5em;font-weight:900;display:flex;flex-direction:column;align-items:center;background:var(--pri-l)}
+.pod svg{width:4em}.pod.p1{background:var(--yel);height:14em}.pod.p2{background:#dfe5f5;height:12em}.pod.p3{background:#ffd9b8;height:10.5em}.pod.p4{background:#e9f7e6;height:9.5em}
+.pod .big{font-size:1.7em;color:var(--pri)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<header>
+ <div class="logo"><span id="logoMas" style="width:2.2em;display:inline-block"></span><span>梯形面積<b>自己拼拼睇</b></span></div>
+ <nav><button data-tab="0" class="on">① 自己拼，自己發現</button><button data-tab="1">② 分級練習</button></nav>
+ <span class="starbox" id="starbox">★ 0</span>
+ <button class="mini" id="fs">全螢幕</button>
+</header>
+<main>
+<section class="panel on" id="p0">
+ <div class="s1">
+  <div class="card cv"><canvas id="c1"></canvas></div>
+  <div class="rcol">
+    <div class="stepper" id="stepper"></div>
+    <div class="guide" id="g1"></div>
+    <div class="card">
+      <div class="stitle" id="stitle"></div>
+      <div class="pick" id="pick" style="margin:.4em 0"></div>
+
+      <div class="blk" id="b0"><div class="hint" id="b0t" style="margin-top:.3em">已找到 0 / 3</div></div>
+      <div class="blk" id="b1"><div class="row" style="margin-top:.4em"><button class="btn o big" id="copyBtn">複製一個</button></div></div>
+      <div class="blk" id="b2"><div class="row" style="margin-top:.4em"><button class="btn o big" id="rot">轉半個圈</button><button class="btn gray" id="reset">重新擺</button><button class="btn y" id="hint">提示</button></div></div>
+      <div class="blk" id="b4"><div class="opts1" id="obs" style="margin-top:.4em"></div></div>
+      <div class="blk" id="fill">
+        <div class="barm" id="barm"></div>
+        <div class="frow" id="r1">① 新圖形嘅底 = <b style="color:var(--top)">上底</b> + <b style="color:var(--bot)">下底</b> = <input id="f1" type="number" inputmode="numeric"><span class="u" id="u1"></span><button class="btn g ck" data-i="1">檢查</button></div>
+        <div class="frow" id="r2">② 平行四邊形面積 = 底 × 高 = <input id="f2" type="number" inputmode="numeric"><span class="u" id="u2"></span><button class="btn g ck" data-i="2">檢查</button></div>
+        <div class="frow" id="r3">③ 一個梯形係平行四邊形嘅<b>一半</b>，所以面積 = <input id="f3" type="number" inputmode="decimal"><span class="u" id="u3"></span><button class="btn g ck" data-i="3">檢查</button></div>
+      </div>
+      <div class="blk" id="b9">
+        <div class="cloze" id="clz"></div>
+        <div class="row"><button class="btn g" id="clzck">檢查</button></div>
+      </div>
+      <div class="blk" id="bfinal"><div class="final">梯形面積 =（上底 + 下底）× 高 ÷ 2<br><small style="font-weight:700">你自己發現咗公式，好叻！</small></div></div>
+    </div>
+    <div class="row" style="justify-content:flex-start"><button class="mini" id="restart">重新開始</button></div>
+  </div>
+ </div>
+</section>
+<section class="panel" id="p1">
+ <div class="setup" id="setup">
+  <h2>梯形分級練習</h2>
+  <div class="hint">分組輪流答題；每人可以揀自己嘅程度，挑戰更高級！</div>
+  <div><div class="hint" style="margin-bottom:.3em">程度</div><div class="row" id="optLevel"></div></div>
+  <div class="row" style="gap:2em"><div><div class="hint" style="margin-bottom:.3em">組數</div><div class="row" id="optTeams"></div></div>
+  <div><div class="hint" style="margin-bottom:.3em">每組題數</div><div class="row" id="optRounds"></div></div></div>
+  <button class="btn g big" id="start">開始！</button>
+ </div>
+ <div class="play" id="play">
+  <div class="score" id="score"></div>
+  <div class="qwrap">
+   <div class="qleft"><div class="qtitle" id="qtitle"></div><div class="card cv" style="flex:1;min-height:0"><canvas id="c2"></canvas></div></div>
+   <div class="qright">
+    <div class="opts" id="opts"></div>
+    <button class="btn" id="nextq" style="display:none;align-self:flex-start">下一題 ▶</button>
+    <div class="fb" id="fb"></div>
+   </div>
+  </div>
+ </div>
+ <div class="result" id="result">
+  <h2>完成！每一組都好叻！</h2>
+  <div class="podium" id="podium"></div>
+  <div class="guide" id="g4" style="width:min(32em,90%)"></div>
+  <div class="row"><button class="btn g" id="again">再玩一次</button><button class="btn gray" id="toSetup">返回設定</button></div>
+ </div>
+</section>
+</main>
+<script>
+"use strict";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>Number.isInteger(n)?String(n):String(Math.round(n*10)/10);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const UN={m:{len:"米",area:"平方米",sym:"m",asym:"m²"},cm:{len:"厘米",area:"平方厘米",sym:"cm",asym:"cm²"}};
+const GOOD=["好叻啊！","正確！你係數學小達人","Wow！完全正確","做得好！","你諗得好清楚","犀利！"];
+const TRY=["差少少，再諗諗～","唔緊要，再試一次","梯梯相信你得嘅！"];
+
+function mascot(mood="happy",color="#6c9cff"){
+ const dark="#3b3a5a";let eyes,mouth,arms,extra="";
+ const eye=(cx,px,py)=>`<circle cx="${cx}" cy="58" r="10" fill="#fff"/><circle cx="${cx+px}" cy="${58+py}" r="5.5" fill="${dark}"/><circle cx="${cx+px+2}" cy="${58+py-2}" r="1.8" fill="#fff"/>`;
+ arms=`<ellipse cx="14" cy="70" rx="7" ry="10" fill="${color}" transform="rotate(25 14 70)"/><ellipse cx="106" cy="70" rx="7" ry="10" fill="${color}" transform="rotate(-25 106 70)"/>`;
+ if(mood==="cheer"){eyes=`<path d="M36 60 Q46 46 56 60" stroke="${dark}" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M64 60 Q74 46 84 60" stroke="${dark}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+  mouth=`<path d="M45 72 Q60 98 75 72 Z" fill="#ff6f91" stroke="${dark}" stroke-width="3.5" stroke-linejoin="round"/>`;
+  arms=`<ellipse cx="12" cy="42" rx="7" ry="11" fill="${color}" transform="rotate(-25 12 42)"/><ellipse cx="108" cy="42" rx="7" ry="11" fill="${color}" transform="rotate(25 108 42)"/>`;}
+ else if(mood==="think"){eyes=eye(46,2,-3)+eye(74,2,-3);mouth=`<path d="M52 80 Q60 75 70 80" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/>`;extra=`<text x="96" y="30" font-size="28" font-weight="900" fill="${color}">?</text>`;}
+ else if(mood==="oops"){eyes=eye(46,0,1)+eye(74,0,1)+`<path d="M33 49 L54 42" stroke="${dark}" stroke-width="4" stroke-linecap="round"/><path d="M87 49 L66 42" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`;mouth=`<path d="M48 80 Q60 72 72 80" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
+ else{eyes=eye(46,0,1)+eye(74,0,1);mouth=`<path d="M48 72 Q60 86 72 72" stroke="${dark}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;}
+ return `<svg viewBox="0 0 120 118" xmlns="http://www.w3.org/2000/svg"><ellipse cx="38" cy="108" rx="14" ry="7" fill="${dark}" opacity=".85"/><ellipse cx="82" cy="108" rx="14" ry="7" fill="${dark}" opacity=".85"/>${arms}<path d="M32 28 H88 L108 98 H12 Z" fill="${color}" stroke="${color}" stroke-width="14" stroke-linejoin="round"/><path d="M38 34 H70 L66 44 H34 Z" fill="#fff" opacity=".28"/><path d="M60 2 l4 8 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1z" fill="#ffd54a" stroke="#e0b020" stroke-width="1.5" stroke-linejoin="round"/>${eyes}<ellipse cx="31" cy="76" rx="7" ry="4.5" fill="#ff9db8" opacity=".85"/><ellipse cx="89" cy="76" rx="7" ry="4.5" fill="#ff9db8" opacity=".85"/>${mouth}${extra}</svg>`;
+}
+function say(id,text,mood="happy",color){const g=document.getElementById(id);if(!g)return;g.innerHTML=`<div class="mas">${mascot(mood,color)}</div><div class="bub">${text}</div>`;g.classList.remove("bounce","wobble");void g.offsetWidth;g.classList.add(mood==="oops"||mood==="think"?"wobble":"bounce");}
+$("#logoMas").innerHTML=mascot();
+const fx=$("#fx"),fctx=fx.getContext("2d");let parts=[],fxOn=false;
+const fxSize=()=>{fx.width=innerWidth;fx.height=innerHeight;};addEventListener("resize",fxSize);fxSize();
+function boom(x=innerWidth/2,y=innerHeight/3,n=80){const cols=["#ff7aa8","#ffd54a","#5bc8ff","#3ccb8e","#6c7cff","#ffb04a"];
+ for(let i=0;i<n;i++){const a=Math.random()*6.283,s=4+Math.random()*9;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-6,r:4+Math.random()*6,c:pick(cols),rot:Math.random()*6,vr:(Math.random()-.5)*.4,life:90+Math.random()*50,star:Math.random()<.3});}
+ if(!fxOn){fxOn=true;requestAnimationFrame(loopFx);}}
+function loopFx(){fctx.clearRect(0,0,fx.width,fx.height);parts=parts.filter(p=>p.life>0);
+ parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.28;p.vx*=.99;p.rot+=p.vr;p.life--;fctx.save();fctx.globalAlpha=Math.min(1,p.life/30);fctx.translate(p.x,p.y);fctx.rotate(p.rot);fctx.fillStyle=p.c;
+  if(p.star){fctx.beginPath();for(let k=0;k<5;k++){const a=k*6.283/5-1.571;fctx.lineTo(Math.cos(a)*p.r*1.6,Math.sin(a)*p.r*1.6);const b=a+.628;fctx.lineTo(Math.cos(b)*p.r*.7,Math.sin(b)*p.r*.7);}fctx.fill();}else fctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);fctx.restore();});
+ if(parts.length)requestAnimationFrame(loopFx);else{fxOn=false;fctx.clearRect(0,0,fx.width,fx.height);}}
+let actx=null;
+function beep(fr,d=.12,type="sine",v=.12){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();let t=actx.currentTime;fr.forEach(f=>{const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=f;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d);t+=d*.9;});}catch(e){}}
+const sndOK=()=>beep([523,659,784,1047]),sndNO=()=>beep([330,262],.16,"triangle",.09),sndPop=()=>beep([600,800],.07,"triangle",.08);
+let stars=0;const addStar=(n=1)=>{stars+=n;const b=$("#starbox");b.textContent="★ "+stars;b.animate([{transform:"scale(1)"},{transform:"scale(1.35)"},{transform:"scale(1)"}],{duration:400});};
+$("#fs").onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.();};
+$$("nav button").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.toggle("on",x===b));$$(".panel").forEach((p,i)=>p.classList.toggle("on",i==b.dataset.tab));requestAnimationFrame(()=>{if(G.q&&$("#play").style.display==="grid")drawQ(G.q,$("#c2"));});});
+
+/* canvas helpers */
+function fit(cv){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1,w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}const c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);return{ctx:c,W:r.width,H:r.height};}
+const FONT='"Noto Sans CJK HK","PingFang HK","Microsoft JhengHei",sans-serif';
+function label(ctx,t,x,y,o={}){ctx.font=`900 ${o.size||20}px ${FONT}`;ctx.textAlign=o.align||"center";ctx.textBaseline="middle";
+ if(o.bg){const w=ctx.measureText(t).width,pad=8,hh=(o.size||20)+10;let bx=x-w/2;if(o.align==="left")bx=x;if(o.align==="right")bx=x-w;ctx.fillStyle=o.bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(bx-pad,y-hh/2,w+pad*2,hh,hh/2):ctx.rect(bx-pad,y-hh/2,w+pad*2,hh);ctx.fill();}
+ ctx.fillStyle=o.color||"#3b3a5a";ctx.fillText(t,x,y);}
+function poly(ctx,P,tx){ctx.beginPath();P.forEach((p,i)=>{const[x,y]=tx(p);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();}
+function grid(ctx,tx,x0,x1,y0,y1,W,H){ctx.strokeStyle="#e6ecfb";ctx.lineWidth=1;for(let x=Math.floor(x0);x<=Math.ceil(x1);x++){const[px]=tx([x,0]);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();}for(let y=Math.floor(y0);y<=Math.ceil(y1);y++){const[,py]=tx([0,y]);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();}}
+function rightAngle(ctx,x,y,s,dx,dy){ctx.beginPath();ctx.moveTo(x+dx*s,y);ctx.lineTo(x+dx*s,y+dy*s);ctx.lineTo(x,y+dy*s);ctx.lineWidth=2.5;ctx.strokeStyle="#3b3a5a";ctx.stroke();}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+/* =========================== STAGE 1 =========================== */
+const PRE=[{a:3,b:5,h:4,off:1,u:"cm",n:"梯形 A"},{a:2,b:6,h:3,off:2,u:"m",n:"梯形 B"},{a:4,b:8,h:5,off:1,u:"cm",n:"梯形 C"}];
+const STITLE=["第 1 步　認識上底、下底、高","第 2 步　複製一個","第 3 步　轉半個圈","第 4 步　拼埋一齊","第 5 步　觀察拼成嘅圖形","第 6 步　新圖形嘅底","第 7 步　平行四邊形面積","第 8 步　梯形面積","第 9 步　再試其他梯形","第 10 步　發現公式"];
+const E={step:0,shape:0,rev:{t:0,b:0,h:0},copyT:0,copyAnim:0,cx:0,cy:0,ang:0,angT:0,rot:0,joined:false,drag:false,gx:0,gy:0,hint:false,fi:0,shapeDone:[false,false,false],view:null};
+const cur=()=>PRE[E.shape];
+const shapeO=()=>{const{a,b,h,off}=cur();return[[0,0],[b,0],[off+a,h],[off,h]];};
+function centerBB(P){const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);return[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];}
+function target(){const{a,b,h,off}=cur(),C=centerBB(shapeO()),M=[(b+off+a)/2,h/2];return[2*M[0]-C[0],2*M[1]-C[1]];}
+function startPos(){const{h}=cur(),C=centerBB(shapeO());return[C[0],C[1]-h-1.8];}
+function buildStepper(){const w=$("#stepper");w.innerHTML="";for(let i=0;i<10;i++){const e=document.createElement("i");e.textContent=i<E.step?"✓":i+1;e.className=i<E.step?"done":(i===E.step?"cur":"");w.appendChild(e);}}
+function buildPick(){const w=$("#pick");w.innerHTML="";PRE.forEach((p,i)=>{const b=document.createElement("button");b.className=(i===E.shape?"on ":"")+(E.shapeDone[i]?"done":"");b.innerHTML=`${p.n}${E.shapeDone[i]?" ✓":""}<small>${p.a}・${p.b}・${p.h} ${UN[p.u].sym}</small>`;b.onclick=()=>chooseShape(i);w.appendChild(b);});}
+function blocks(ids){["b0","b1","b2","b4","fill","b9","bfinal"].forEach(id=>$("#"+id).classList.toggle("on",ids.includes(id)));}
+const GTXT=[
+ "撳一撳梯形嘅<b>邊</b>，搵出<b>上底</b>、<b>下底</b>同<b>高</b>。（上底、下底係平行嘅一對邊；高要同底成直角。）",
+ "我哋要<b>兩個一模一樣</b>嘅梯形。撳「複製一個」！",
+ "撳「轉半個圈」，橙色梯形會<b>倒轉過嚟</b>（原本喺上面嘅邊，變咗喺下面）。",
+ "用手指或滑鼠<b>拖動橙色梯形</b>，同藍色梯形拼埋一齊。兩條斜邊要<b>貼緊</b>！",
+ "兩個梯形拼埋，睇下變成咗咩圖形？",
+ "新圖形嘅底，係橙色嘅<b>上底</b>接埋藍色嘅<b>下底</b>。計計睇！",
+ "我哋學過：平行四邊形面積 = <b>底 × 高</b>。",
+ "平行四邊形由<b>兩個</b>一樣嘅梯形拼成，一個梯形就係佢嘅<b>一半</b>。",
+ "揀梯形 B、C，用同樣方法計，睇睇會唔會有同樣發現？",
+ "你計咗三個梯形，有冇發現規律？用字填出<b>梯形面積公式</b>！"];
+function go(n,silent){
+ E.step=n;buildStepper();$("#stitle").textContent=STITLE[Math.min(n,9)];
+ $("#pick").classList.toggle("on",n>=8);
+ const bl={0:["b0"],1:["b1"],2:["b2"],3:["b2"],4:["b4"],5:["fill"],6:["fill"],7:["fill"],8:["fill"],9:["b9"],10:["bfinal"]}[n]||[];
+ blocks(bl);
+ $("#rot").style.display=n===2||n===3?"":"none";$("#rot").disabled=(n===3);$("#hint").style.display=n===3?"":"none";$("#reset").style.display=n===3?"":"none";
+ if(n>=5&&n<=8){$$(".frow").forEach((r,i)=>r.classList.toggle("on",n===8?i===E.fi:i===n-5));}
+ if(n===8)buildPick();
+ if(!silent&&GTXT[n])say("g1",GTXT[n],"think");
+}
+function resetPiece(){const s=startPos();E.cx=s[0];E.cy=s[1];E.ang=E.angT=0;E.rot=0;E.joined=false;E.hint=false;}
+function setJoined(){const T=target();E.cx=T[0];E.cy=T[1];E.ang=E.angT=Math.PI;E.rot=180;E.joined=true;E.jt=performance.now();E.copyT=1;E.rev={t:1,b:1,h:1};}
+function updateBar(done){const c=cur(),u=UN[c.u].sym;$("#barm").innerHTML=`<div class="sg"><div style="flex:${c.a};background:var(--top)">上底 ${c.a}</div><div style="flex:${c.b};background:var(--bot)">下底 ${c.b}</div></div><div class="br"></div><div class="tot">${done?`底 = ${c.a} + ${c.b} = ${c.a+c.b} ${u}`:"底 = 上底 + 下底 = ？"}</div>`;}
+function setFillUnits(){updateBar(false);const u=UN[cur().u];$("#u1").textContent=u.len;$("#u2").textContent=u.area;$("#u3").textContent=u.area;["f1","f2","f3"].forEach(id=>{const e=$("#"+id);e.value="";e.className="";e.disabled=false;});E.fi=0;}
+function chooseShape(i){
+ E.shape=i;buildPick();setJoined();setFillUnits();$$(".frow").forEach((r,k)=>r.classList.toggle("on",k===0));
+ say("g1",`${cur().n}：兩個梯形已經拼好。由第一格開始計，一步一步嚟！`,"think");}
+function restart(){E.shape=0;E.shapeDone=[false,false,false];E.rev={t:0,b:0,h:0};E.copyT=0;E.copyAnim=0;E.fi=0;resetPiece();setFillUnits();$("#b0t").textContent="已找到 0 / 3";go(0);}
+
+/* canvas */
+function bounds(){const{a,b,h,off}=cur();const x0=Math.min(0,off)-1.5,x1=Math.max(b,off+a)+Math.max(0,off)+a+1.5;return[x0,x1,-h-3.2,h+2];}
+function view1(W,H){const[x0,x1,y0,y1]=bounds(),sc=Math.min(W/(x1-x0),H/(y1-y0)),ox=(W-(x1-x0)*sc)/2-x0*sc,oy=H-(H-(y1-y0)*sc)/2+y0*sc;return{sc,tx:p=>[ox+p[0]*sc,oy-p[1]*sc],inv:(px,py)=>[(px-ox)/sc,(oy-py)/sc]};}
+function piecePts(){const O=shapeO(),C=centerBB(O),th=E.ang,cs=Math.cos(th),sn=Math.sin(th);return O.map(([x,y])=>{const dx=x-C[0],dy=y-C[1];return[E.cx+dx*cs-dy*sn,E.cy+dx*sn+dy*cs];});}
+function inPoly(p,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[xi,yi]=P[i],[xj,yj]=P[j];if(((yi>p[1])!==(yj>p[1]))&&(p[0]<(xj-xi)*(p[1]-yi)/(yj-yi)+xi))c=!c;}return c;}
+function distSeg(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
+function draw1(){
+ if(!$("#p0").classList.contains("on")){requestAnimationFrame(draw1);return;}
+ const cv=$("#c1"),{ctx,W,H}=fit(cv);ctx.clearRect(0,0,W,H);ctx.fillStyle="#fbfdff";ctx.fillRect(0,0,W,H);
+ const v=E.view=view1(W,H),tx=v.tx,{a,b,h,off,u}=cur(),U=UN[u],[x0,x1,y0,y1]=bounds();grid(ctx,tx,x0-2,x1+2,y0-2,y1+2,W,H);ctx.lineJoin="round";
+ const d=E.angT-E.ang;if(Math.abs(d)>.003)E.ang+=d*.14;else E.ang=E.angT;
+ if(E.copyAnim){E.copyT=Math.min(1,E.copyT+.035);const C=centerBB(shapeO()),S=startPos(),k=ease(E.copyT);E.cx=C[0]+(S[0]-C[0])*k;E.cy=C[1]+(S[1]-C[1])*k;if(E.copyT>=1)E.copyAnim=0;}
+ const O=shapeO(),fs=Math.max(14,Math.min(26,v.sc*.55)),showAll=E.step>0||E.shape>0;
+ if(E.hint&&!E.joined&&E.copyT>=1){const C=centerBB(O),T=target(),P=O.map(([x,y])=>[T[0]-(x-C[0]),T[1]-(y-C[1])]);poly(ctx,P,tx);ctx.setLineDash([10,8]);ctx.lineWidth=4;ctx.strokeStyle="#3ccb8e";ctx.stroke();ctx.setLineDash([]);}
+ poly(ctx,O,tx);ctx.fillStyle="#6c9cff";ctx.fill();ctx.lineWidth=4;ctx.strokeStyle="#3b5bdb";ctx.stroke();
+ if(E.copyT>0){const P=piecePts();poly(ctx,P,tx);ctx.fillStyle=E.drag?"#ffc36e":"#ffb04a";ctx.fill();ctx.lineWidth=4;ctx.strokeStyle="#d98a1f";ctx.stroke();}
+ if(E.joined){poly(ctx,[[0,0],[a+b,0],[off+a+b,h],[off,h]],tx);ctx.setLineDash([10,7]);ctx.lineWidth=4;ctx.strokeStyle="#3ccb8e";ctx.stroke();ctx.setLineDash([]);}
+ // dashed height + right angle
+ const[hx,hy]=tx([off,h]),[fx_,fy]=tx([off,0]);ctx.setLineDash([8,6]);ctx.lineWidth=3;ctx.strokeStyle=E.rev.h||showAll?"#1f9a68":"#3b3a5a";ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(fx_,fy);ctx.stroke();ctx.setLineDash([]);
+ rightAngle(ctx,fx_,fy,Math.min(14,v.sc*.35),1,-1);
+ const[tlx,tly]=tx([off+a/2,h]),[blx,bly]=tx([b/2,0]);
+ const pulse=.5+.5*Math.sin(performance.now()/260);
+ const hot=(x,y,t)=>{ctx.save();ctx.fillStyle=`rgba(255,122,168,${.75+.25*pulse})`;ctx.beginPath();ctx.arc(x,y,16+3*pulse,0,6.3);ctx.fill();ctx.restore();label(ctx,t,x,y,{size:20,color:"#fff"});};
+ const topOn=E.rev.t||showAll,botOn=(E.rev.b||showAll)&&!E.joined,hOn=E.rev.h||showAll;
+ if(topOn&&!E.joined){ctx.save();ctx.strokeStyle="#e5338c";ctx.lineWidth=7;ctx.lineCap="round";const A=tx([off,h]),B=tx([off+a,h]);ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();ctx.restore();label(ctx,`上底 ${a} ${U.sym}`,tlx,tly-fs*.9,{size:fs,color:"#e5338c"});}
+ else if(E.step===0&&!E.joined)hot(tlx,tly-12,"？");
+ if(botOn){ctx.save();ctx.strokeStyle="#7a3ff2";ctx.lineWidth=7;ctx.lineCap="round";const A=tx([0,0]),B=tx([b,0]);ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();ctx.restore();label(ctx,`下底 ${b} ${U.sym}`,blx,bly+fs*.9,{size:fs,color:"#7a3ff2"});}
+ else if(E.step===0&&!E.rev.b)hot(blx,bly+12,"？");
+ if(hOn)label(ctx,`高 ${h} ${U.sym}`,fx_-6,(hy+fy)/2,{size:fs,align:"right",color:"#1f9a68",bg:"rgba(255,255,255,.92)"});
+ else if(E.step===0)hot(fx_+22,(hy+fy)/2,"？");
+ if(E.joined){
+  const el=(performance.now()-(E.jt||0))/1000,pr=(t0,t1)=>Math.max(0,Math.min(1,(el-t0)/(t1-t0)));
+  const seg=(w0,w1,wy,col,k,txt,up)=>{if(k<=0)return;const A=tx([w0,wy]),B=tx([w1,wy]),yy=A[1]+(up?-16:16);ctx.save();ctx.globalAlpha=k;ctx.strokeStyle=col;ctx.lineWidth=10;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(A[0]+3,yy);ctx.lineTo(A[0]+3+(B[0]-A[0]-6)*k,yy);ctx.stroke();ctx.restore();ctx.save();ctx.globalAlpha=k;label(ctx,txt,(A[0]+B[0])/2,yy+(up?-fs*.85:fs*.9),{size:fs,color:col});ctx.restore();};
+  seg(off,off+a,h,"#e5338c",pr(0,.5),`上底 ${a} ${U.sym}`,true);seg(off+a,off+a+b,h,"#7a3ff2",pr(.3,.8),`下底 ${b} ${U.sym}`,true);
+  seg(b,a+b,0,"#e5338c",pr(.9,1.5),`上底 ${a} ${U.sym}`,false);seg(0,b,0,"#7a3ff2",pr(1.6,2.2),`下底 ${b} ${U.sym}`,false);
+  const kk=pr(2.4,3.0);if(kk>0){const A=tx([0,0]),B=tx([a+b,0]),yy=A[1]+fs*2.9;ctx.save();ctx.globalAlpha=kk;ctx.strokeStyle="#3b3a5a";ctx.lineWidth=4;ctx.lineCap="butt";ctx.beginPath();ctx.moveTo(A[0],yy-12);ctx.lineTo(A[0],yy);ctx.lineTo(B[0],yy);ctx.lineTo(B[0],yy-12);ctx.stroke();ctx.restore();ctx.save();ctx.globalAlpha=kk;label(ctx,`底 = 上底 + 下底 = ${a} + ${b} = ${a+b} ${U.sym}`,(A[0]+B[0])/2,yy+fs*1.0,{size:fs*1.05,color:"#1f9a68"});ctx.restore();}
+  const[px,py]=tx([off+(a+b)/2,h/2]);label(ctx,"平行四邊形",px,py,{size:fs*1.15,color:"#fff",bg:"#3ccb8e"});}
+ if(E.step===1&&!E.copyAnim&&E.copyT===0)label(ctx,"撳右邊「複製一個」",W/2,H-24,{size:fs,color:"#d98a1f",bg:"#fff0d9"});
+ if(E.step===3&&!E.joined&&!E.drag&&E.copyT>=1&&Math.hypot(E.cx-startPos()[0],E.cy-startPos()[1])<.01)label(ctx,"拖動橙色梯形 ↑",W/2,H-24,{size:fs,color:"#d98a1f",bg:"#fff0d9"});
+ requestAnimationFrame(draw1);
+}
+const cv1=$("#c1");
+function ptr(e){const r=cv1.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];}
+cv1.addEventListener("pointerdown",e=>{
+ const[px,py]=ptr(e);
+ if(E.step===0){const v=E.view,tx=v.tx,{a,b,h,off}=cur(),P=[px,py],seg=(A,B)=>distSeg(P,tx(A),tx(B));
+  const hits=[["t",seg([off,h],[off+a,h])],["b",seg([0,0],[b,0])],["h",seg([off,0],[off,h])]].filter(x=>x[1]<24).sort((x,y)=>x[1]-y[1]);
+  if(hits.length){const k=hits[0][0];if(!E.rev[k]){E.rev[k]=1;sndPop();const n=E.rev.t+E.rev.b+E.rev.h;$("#b0t").textContent=`已找到 ${n} / 3`;
+   say("g1",{t:"呢條係<b>上底</b>（較短嘅平行邊）。",b:"呢條係<b>下底</b>（較長嘅平行邊）。",h:"呢條係<b>高</b>：兩條底之間嘅垂直距離，同底成直角。"}[k]+(n<3?" 繼續搵！":""),"happy");
+   if(n===3){sndOK();boom(innerWidth*.35,innerHeight*.4,40);setTimeout(()=>{go(1);},1200);say("g1","<b>"+pick(GOOD)+"</b> 三樣都搵到喇！","cheer");}}}
+  return;}
+ if(E.step===3&&!E.joined&&E.copyT>=1){const p=v2(px,py);if(inPoly(p,piecePts())){E.drag=true;E.gx=p[0]-E.cx;E.gy=p[1]-E.cy;cv1.setPointerCapture(e.pointerId);}}
+});
+const v2=(px,py)=>E.view.inv(px,py);
+cv1.addEventListener("pointermove",e=>{if(!E.drag)return;const[px,py]=ptr(e),p=v2(px,py),[x0,x1,y0,y1]=bounds();E.cx=Math.max(x0,Math.min(x1,p[0]-E.gx));E.cy=Math.max(y0,Math.min(y1,p[1]-E.gy));});
+cv1.addEventListener("pointerup",()=>{if(!E.drag)return;E.drag=false;trySnap();});
+$("#copyBtn").onclick=()=>{if(E.copyT>0)return;E.copyAnim=1;sndPop();say("g1","複製好喇！橙色梯形同藍色梯形<b>一模一樣</b>，面積都一樣大。","happy");setTimeout(()=>go(2),1300);};
+$("#rot").onclick=()=>{if(E.step!==2)return;E.rot=180;E.angT=Math.PI;beep([500,700],.07,"triangle",.07);say("g1","橙色梯形<b>倒轉</b>咗喇！原本喺上面嘅邊，而家喺下面。","happy");setTimeout(()=>go(3),1300);};
+$("#reset").onclick=()=>{resetPiece();E.angT=E.ang=Math.PI;E.rot=180;say("g1","重新擺好喇，再拖去拼合！","happy");};
+$("#hint").onclick=()=>{E.hint=true;say("g1","綠色虛線係拼合嘅位置。兩條<b>斜邊</b>要貼緊。","think");};
+function trySnap(){const T=target(),d=Math.hypot(E.cx-T[0],E.cy-T[1]);
+ if(d<Math.max(.9,cur().h*.2)){E.cx=T[0];E.cy=T[1];E.joined=true;E.jt=performance.now();sndOK();boom(innerWidth*.35,innerHeight*.4,50);say("g1","<b>"+pick(GOOD)+"</b> 拼埋喇！","cheer");setTimeout(()=>go(4),1200);}
+ else say("g1","差少少！試試拖近啲，兩條斜邊要貼緊。","think");}
+/* observe */
+function buildObs(){const w=$("#obs");w.innerHTML="";const rect=cur().off===0;
+ [["平行四邊形",true,""],["長方形",rect,"圖形兩邊係斜嘅，角唔係直角，所以唔係長方形。"],["三角形",false,"兩個梯形拼埋有四條邊，唔係三角形。"]].forEach(([t,ok,why])=>{const b=document.createElement("button");b.className="o1";b.textContent=t;
+  b.onclick=()=>{if(ok){b.classList.add("ok");sndOK();say("g1","<b>"+pick(GOOD)+"</b> 拼成咗<b>平行四邊形</b>！我哋會計平行四邊形面積，就可以計到梯形。","cheer");setTimeout(()=>{go(5);setFillUnits();$$(".frow").forEach((r,k)=>r.classList.toggle("on",k===0));},1500);}
+   else{b.classList.add("no");sndNO();say("g1",why+" "+pick(TRY),"oops");}};w.appendChild(b);});}
+/* fill rows */
+const need=()=>{const{a,b,h}=cur();return[a+b,(a+b)*h,(a+b)*h/2];};
+$$(".ck").forEach(btn=>btn.onclick=()=>{
+ const i=+btn.dataset.i;if(i-1!==E.fi)return;const inp=$("#f"+i),val=parseFloat(inp.value),ok=Math.abs(val-need()[i-1])<1e-9;
+ inp.classList.remove("good","bad");void inp.offsetWidth;const c=cur();
+ if(ok){inp.classList.add("good");sndOK();inp.disabled=true;
+  say("g1","<b>"+pick(GOOD)+"</b> "+[`底 = ${c.a} + ${c.b} = ${need()[0]}`,`平行四邊形面積 = ${need()[0]} × ${c.h} = ${need()[1]}`,`梯形面積 = ${need()[1]} ÷ 2 = ${fmt(need()[2])}`][i-1],"cheer");
+  E.fi=i;if(i===1)updateBar(true);
+  if(E.shape===0&&E.step<8)go(5+i,true);
+  $$(".frow").forEach((r,k)=>r.classList.toggle("on",k===E.fi&&E.fi<3));
+  if(i===3){E.shapeDone[E.shape]=true;addStar(1);boom();
+   if(E.shape===0){setTimeout(()=>{go(8);E.fi=3;$$(".frow").forEach(r=>r.classList.remove("on"));say("g1","梯形 A 完成！揀梯形 B、C，用同樣方法計。","happy");},1500);}
+   else{buildPick();if(E.shapeDone.every(Boolean))setTimeout(()=>{go(9);buildCloze();},1500);else say("g1","好叻！再揀另一個梯形試試。","happy");}}
+ }else{inp.classList.add("bad");sndNO();
+  say("g1",[`上底 ${c.a} 加下底 ${c.b} 呀。`,`底（${need()[0]}）乘高（${c.h}）。`,`平行四邊形由兩個梯形拼成，一個梯形係佢嘅一半，所以要<b>除以 2</b>。`][i-1]+" "+pick(TRY),"oops");}
+});
+function buildCloze(){const w=$("#clz");w.innerHTML="";const opts=["上底","下底","高","2","斜邊"];
+ const mk=()=>{const s=document.createElement("select");s.innerHTML='<option value="">？</option>'+shuffle(opts).map(o=>`<option>${o}</option>`).join("");return s;};
+ const s=[mk(),mk(),mk(),mk()];w.append("梯形面積 =（",s[0]," + ",s[1],"）×",s[2],"÷",s[3]);w._s=s;}
+$("#clzck").onclick=()=>{const s=$("#clz")._s,v=s.map(x=>x.value),okB=(v[0]==="上底"&&v[1]==="下底")||(v[0]==="下底"&&v[1]==="上底"),f=[okB,okB,v[2]==="高",v[3]==="2"];
+ s.forEach((x,i)=>x.className=f[i]?"good":"bad");
+ if(f.every(Boolean)){sndOK();addStar(2);boom(innerWidth*.6,innerHeight*.4,120);go(10,true);E.step=10;buildStepper();say("g1","<b>你自己發現咗公式！</b>先加兩條底，再乘高，最後除以 2。掌聲送俾你！","cheer");}
+ else{sndNO();say("g1",v.includes("斜邊")?"斜邊唔係高啊，高要同底成直角。":"想想你剛才計嘅次序：先加兩條底，再乘高，最後 ÷ 2。","oops");}};
+$("#restart").onclick=restart;
+
+/* =========================== STAGE 2 : levelled practice =========================== */
+const G={teams:2,rounds:3,level:1,state:null,q:null};
+const TC=["#ff7aa8","#5bc8ff","#3ccb8e","#ffb04a"],TITLES=["梯形大師","梯形達人","梯形新星","努力之星"];
+const LV=[{n:1,name:"初級",desc:"直接用公式",c:"#3ccb8e"},{n:2,name:"中級",desc:"有多餘資料，要揀啱先用",c:"#ffb04a"},{n:3,name:"高級",desc:"動動腦：要先諗諗",c:"#ff5d8a"}];
+function buildSetup(){
+ const mk=(el,arr,key,lf)=>{const w=$(el);w.innerHTML="";arr.forEach(v=>{const b=document.createElement("button");b.className="chip"+(G[key]===v?" on":"");b.textContent=lf(v);b.onclick=()=>{G[key]=v;buildSetup();};w.appendChild(b);});};
+ mk("#optTeams",[1,2,3,4],"teams",v=>v===1?"單人":v+" 組");mk("#optRounds",[3,5],"rounds",v=>v+" 題");
+ const lw=$("#optLevel");lw.innerHTML="";LV.forEach(l=>{const b=document.createElement("button");b.className="chip lvl"+(G.level===l.n?" on":"");b.innerHTML=`<b style="color:${l.c}">${l.name}</b><small>${l.desc}</small>`;b.onclick=()=>{G.level=l.n;buildSetup();};lw.appendChild(b);});}
+const TRIP=[[3,4,5],[4,3,5],[6,8,10],[8,6,10]];
+const SCN={m:["校園花圃","遊樂場沙池","天台種植箱"],cm:["梯形咭紙","梯形書簽","梯形積木面板"]};
+function mkOpts(correct,wrongs){const opts=[{t:correct,ok:true}],seen=new Set([correct]);
+ for(const[t,r]of wrongs){if(opts.length>=4)break;if(!seen.has(t)&&parseFloat(t)>0){seen.add(t);opts.push({t,ok:false,r});}}return shuffle(opts);}
+function genQ(level){
+ const unit=Math.random()<.5?"m":"cm",u=UN[unit],scn=pick(SCN[unit]),ar=v=>`${fmt(v)} ${u.area}`,ln=v=>`${fmt(v)} ${u.len}`,oth=unit==="m"?UN.cm:UN.m;
+ const q={level,u,scn,kind:"trap",labs:{}};let a,b,h,off;
+ const evenArea=(lo,hi)=>{let x,y,z;do{x=rnd(2,7);y=rnd(x+1,11);z=rnd(2,7);}while(((x+y)*z)%2!==0);return[x,y,z];};
+ if(level===1){[a,b,h]=evenArea();off=rnd(0,b-a);const A=(a+b)*h/2;
+  Object.assign(q,{a,b,h,off,A,labs:{t:ln(a),b:ln(b),h:ln(h)},title:`${scn}係一個梯形，面積係幾多？`});
+  q.opts=mkOpts(ar(A),[[ar((a+b)*h),"漏咗「÷ 2」！"+fmt((a+b)*h)+" 係平行四邊形嘅面積，梯形只係一半。"],[ln(A),"面積單位要有「平方」："+u.area+"。"],[`${fmt(A)} ${oth.area}`,"留意長度用緊「"+u.len+"」，面積就係「"+u.area+"」。"],[ar(b*h/2),"要用「上底 + 下底」，唔可以淨係用下底。"]]);
+  q.steps=`面積 =（上底 + 下底）× 高 ÷ 2<br>=（${a} + ${b}）× ${h} ÷ 2 = ${(a+b)*h} ÷ 2 = <b>${ar(A)}</b>`;
+ }else if(level===2){const[hh,d,leg]=pick(TRIP);h=hh;a=rnd(2,7);let L,R;if(Math.random()<.5){b=a+d;off=0;L=h;R=leg;}else{b=a+2*d;off=d;L=leg;R=leg;}
+  const A=(a+b)*h/2,p=a+b+L+R;
+  Object.assign(q,{a,b,h,off,A,legs:[L,R],labs:{t:ln(a),b:ln(b),h:ln(h)},title:`${scn}係一個梯形，面積係幾多？`,sub:`（資料：圍住佢一周嘅長度（周界）係 ${ln(p)}；斜邊長度已標示。邊啲資料先用得著？）`});
+  q.opts=mkOpts(ar(A),[[ar((a+b)*R/2),"斜邊唔係高！高係兩條底之間「垂直」嘅距離（虛線同直角符號）。"],[ar(p),"周界係圍住嘅長度，同面積無關，呢個係多餘資料。"],[ar((a+b)*h),"漏咗「÷ 2」！"],[ln(A),"面積單位要有「平方」："+u.area+"。"],[`${fmt(A)} ${oth.area}`,"留意單位：長度用緊「"+u.len+"」，面積就係「"+u.area+"」。"]]);
+  q.steps=`只需要：上底 ${a}、下底 ${b}、高 ${h}（斜邊同周界都係多餘資料）<br>面積 =（${a} + ${b}）× ${h} ÷ 2 = <b>${ar(A)}</b>`;
+ }else{const type=pick(["H","T","D","P"]);
+  if(type==="H"){[a,b,h]=evenArea();off=rnd(0,b-a);const A=(a+b)*h/2;
+   Object.assign(q,{a,b,h,off,A,labs:{t:ln(a),b:ln(b),h:"高 ？",area:`面積 ${ar(A)}`},title:`${scn}係梯形，面積係 ${ar(A)}。上底 ${ln(a)}，下底 ${ln(b)}，高係幾多？`,sub:"動動腦：公式入面，邊樣係未知？"});
+   q.opts=mkOpts(ln(h),[[ln(h/2),"記得先將面積 × 2（因為公式有 ÷ 2）。"],[ln(h*2),"運算反咗！高 = 面積 × 2 ÷（上底 + 下底）。"],[`${fmt(h)} ${u.area}`,"高係「長度」，單位係 "+u.len+"，唔係 "+u.area+"。"],[ln(2*A/b),"要用「上底 + 下底」，唔係淨係下底。"]]);
+   q.steps=`面積 =（上底 + 下底）× 高 ÷ 2，即係 ${fmt(A)} =（${a} + ${b}）× 高 ÷ 2<br>（上底 + 下底）× 高 = ${fmt(A)} × 2 = ${2*A}，高 = ${2*A} ÷ ${a+b} = <b>${ln(h)}</b>`;
+  }else if(type==="T"){[a,b,h]=evenArea();off=rnd(0,b-a);const A=(a+b)*h/2;
+   Object.assign(q,{a,b,h,off,A,labs:{t:"上底 ？",b:ln(b),h:ln(h),area:`面積 ${ar(A)}`},title:`${scn}係梯形，面積係 ${ar(A)}，下底 ${ln(b)}，高 ${ln(h)}。上底係幾多？`,sub:"動動腦：先諗「上底 + 下底」係幾多？"});
+   q.opts=mkOpts(ln(a),[[ln(2*A/h),"呢個係「上底 + 下底」嘅和，仲要減去下底 "+b+" 先得上底。"],[ln(A/h-b),"漏咗將面積 × 2：（上底 + 下底）= 面積 × 2 ÷ 高。"],[ln(2*A/h+b),"應該係減，唔係加：上底 =（上底 + 下底）− 下底。"],[`${fmt(a)} ${u.area}`,"上底係「長度」，單位係 "+u.len+"。"]]);
+   q.steps=`（上底 + 下底）= 面積 × 2 ÷ 高 = ${fmt(A)} × 2 ÷ ${h} = ${2*A/h}<br>上底 = ${2*A/h} − ${b} = <b>${ln(a)}</b>`;
+  }else if(type==="D"){let d;do{a=rnd(2,6);d=rnd(2,5);h=rnd(2,7);b=a+d;}while(((a+b)*h)%2!==0);off=rnd(0,d);const A=(a+b)*h/2;
+   Object.assign(q,{a,b,h,off,A,labs:{t:ln(a),b:`比上底長 ${ln(d)}`,h:ln(h)},title:`${scn}係梯形，上底 ${ln(a)}，下底比上底<b>長 ${ln(d)}</b>，高 ${ln(h)}。面積係幾多？`,sub:"動動腦：下底有幾長？"});
+   q.opts=mkOpts(ar(A),[[ar((a+d)*h/2),"「長 "+d+"」係比上底多 "+d+"，下底 = "+a+" + "+d+" = "+b+"，唔係 "+d+"。"],[ar((a+b)*h),"漏咗「÷ 2」！"],[ar(a*h),"要用「上底 + 下底」。"],[ln(A),"面積單位要有「平方」。"]]);
+   q.steps=`下底 = ${a} + ${d} = ${b}<br>面積 =（${a} + ${b}）× ${h} ÷ 2 = <b>${ar(A)}</b>`;
+  }else{let X;do{X=rnd(6,16);h=rnd(2,8);}while((X*h)%2!==0);a=Math.floor(X/3);b=X-a;off=rnd(1,3);const A=X*h/2;
+   Object.assign(q,{kind:"para",a,b,h,off,X,A,labs:{h:ln(h),base:ln(X)},title:`兩個一模一樣嘅${scn}拼成一個平行四邊形，底係 ${ln(X)}，高係 ${ln(h)}。一個${scn}嘅面積係幾多？`,sub:"動動腦：平行四邊形同梯形有咩關係？"});
+   q.opts=mkOpts(ar(A),[[ar(X*h),"呢個係整個平行四邊形，一個梯形只係一半。"],[ar(X*h*2),"梯形比平行四邊形細，要除，唔係乘。"],[ln(A),"面積單位要有「平方」。"],[ar((X+h)/2),"面積係 底 × 高，唔係相加。"]]);
+   q.steps=`平行四邊形面積 = ${X} × ${h} = ${X*h}<br>一個梯形 = ${X*h} ÷ 2 = <b>${ar(A)}</b>`;
+  }}
+ return q;
+}
+function drawQ(q,cv){
+ const{ctx,W,H}=fit(cv);ctx.clearRect(0,0,W,H);ctx.fillStyle="#fbfdff";ctx.fillRect(0,0,W,H);
+ const{a,b,h,off}=q,para=q.kind==="para",wid=para?q.X:b,P=para?[[0,0],[q.X,0],[off+q.X,h],[off,h]]:[[0,0],[b,0],[off+a,h],[off,h]],xs=P.map(p=>p[0]);
+ const mx=Math.max(3,(Math.max(...xs)-Math.min(...xs))*.28),my=Math.max(2.2,h*.6),x0=Math.min(...xs)-mx*.8,x1=Math.max(...xs)+mx*.8,y0=-my*.8,y1=h+my*.8,sc=Math.min(W/(x1-x0),H/(y1-y0)),ox=(W-(x1-x0)*sc)/2-x0*sc,oy=H-(H-(y1-y0)*sc)/2+y0*sc,tx=p=>[ox+p[0]*sc,oy-p[1]*sc];
+ grid(ctx,tx,x0-2,x1+2,y0-2,y1+2,W,H);ctx.lineJoin="round";poly(ctx,P,tx);ctx.fillStyle=para?"rgba(60,203,142,.22)":"rgba(108,156,255,.28)";ctx.fill();ctx.lineWidth=4.5;ctx.strokeStyle=para?"#1f9a68":"#3b5bdb";ctx.stroke();
+ if(para){ctx.save();ctx.setLineDash([10,7]);ctx.lineWidth=3;ctx.strokeStyle="#ff7aa8";const A=tx([off,h]),B=tx([q.b,0]);ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke();ctx.restore();}
+ const fs=Math.max(15,Math.min(27,sc*.65)),L=q.labs;
+ if(para){const[bx,by]=tx([q.X/2,0]);label(ctx,"底 "+L.base,bx,by+fs*.95,{size:fs,color:"#1f9a68"});}
+ else{const[tlx,tly]=tx([off+a/2,h]);label(ctx,L.t,tlx,tly-fs*.9,{size:fs,color:L.t.includes("？")?"#ff5d6c":"#3b5bdb"});
+  const[bx,by]=tx([b/2,0]);label(ctx,L.b,bx,by+fs*.9,{size:fs,color:"#3b5bdb"});}
+ const[hx,hy]=tx([off,h]),[fx_,fy]=tx([off,0]);ctx.setLineDash([9,6]);ctx.lineWidth=3;ctx.strokeStyle="#3b3a5a";ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(fx_,fy);ctx.stroke();ctx.setLineDash([]);
+ const s=Math.min(16,sc*.4);rightAngle(ctx,fx_,fy,s,1,-1);rightAngle(ctx,hx,hy,s,1,1);
+ label(ctx,L.h,fx_+(off>0?-6:fs*.6),(hy+fy)/2,{size:fs,align:off>0?"right":"left",color:L.h.includes("？")?"#ff5d6c":"#3b3a5a",bg:"rgba(255,255,255,.92)"});
+ if(q.legs){const[l,r]=q.legs,lm=tx([off/2,h/2]);if(off>0)label(ctx,`斜邊 ${l} ${q.u.sym}`,lm[0]-fs*.5,lm[1],{size:fs*.9,align:"right",color:"#d98a1f"});
+  const rm=tx([(b+off+a)/2,h/2]);label(ctx,`斜邊 ${r} ${q.u.sym}`,rm[0]+fs*.5,rm[1],{size:fs*.9,align:"left",color:"#d98a1f"});}
+ if(L.area)label(ctx,L.area,14,28,{size:Math.max(18,fs),align:"left",color:"#1f9a68",bg:"#d9f7ea"});
+}
+function startGame(){const st={teams:Array.from({length:G.teams},(_,i)=>({name:G.teams===1?"你":`第${i+1}組`,score:0,streak:0,ok:0,c:TC[i]})),total:G.teams*G.rounds,i:0,locked:false};
+ G.state=st;$("#setup").style.display="none";$("#result").style.display="none";$("#play").style.display="grid";nextQ();}
+function renderScore(){const st=G.state,w=$("#score");w.innerHTML="";st.teams.forEach((t,i)=>{const d=document.createElement("div");d.className="team"+(i===st.i%st.teams.length&&!st.over?" act":"");d.innerHTML=`<div class="tm">${mascot(t.streak>=2?"cheer":"happy",t.c)}</div><div class="nm">${t.name}</div><div class="pt">${t.score}</div>`;w.appendChild(d);});}
+function nextQ(){const st=G.state;if(st.i>=st.total)return endGame();const q=G.q=genQ(G.level);st.locked=false;const team=st.teams[st.i%st.teams.length],lv=LV[G.level-1];
+ $("#qtitle").innerHTML=`<span class="lv" style="background:${lv.c}">${lv.name}</span>${st.teams.length>1?`<span style="color:${team.c}">${team.name}</span>　`:""}第 ${st.i+1} / ${st.total} 題<br>${q.title}${q.sub?`<small>${q.sub}</small>`:""}`;
+ const ow=$("#opts");ow.innerHTML="";q.opts.forEach((o,i)=>{const b=document.createElement("button");b.className="opt";b.textContent=o.t;b.onclick=()=>answer(i);ow.appendChild(b);});
+ $("#fb").innerHTML='<div class="guide" id="g5"></div>';
+ say("g5",G.level===1?"用公式計，留意單位："+q.u.len+"／"+q.u.area+"。":G.level===2?"小心！唔係每個數字都用得著。高要同底垂直。":"唔好急，先諗清楚邊樣已知、邊樣未知。","think",team.c);
+ $("#nextq").style.display="none";renderScore();drawQ(q,$("#c2"));}
+function answer(idx){const st=G.state;if(st.locked)return;st.locked=true;const q=G.q,team=st.teams[st.i%st.teams.length],bs=$$("#opts .opt");
+ bs.forEach((b,i)=>{b.disabled=true;if(q.opts[i].ok)b.classList.add("right");});let msg,mood;
+ if(q.opts[idx].ok){team.streak++;team.ok++;const base=[10,15,20][G.level-1],pts=base+(team.streak>=3?5:0);team.score+=pts;sndOK();msg=`<b>${pick(GOOD)}</b> +${pts} 分${team.streak>=3?"（3 連勝獎勵！）":""}`;mood="cheer";boom(innerWidth*.7,innerHeight*.4,45);}
+ else{bs[idx].classList.add("wrong");team.streak=0;sndNO();msg=q.opts[idx].r+" 錯誤係學習嘅好機會，睇睇點計：";mood="oops";}
+ $("#fb").innerHTML='<div class="guide" id="g5"></div><div style="margin-top:.4em">'+q.steps+'</div>';say("g5",msg,mood,team.c);
+ $("#nextq").style.display="";$("#nextq").textContent=st.i+1>=st.total?"睇結果 ▶":"下一題 ▶";renderScore();}
+$("#nextq").onclick=()=>{G.state.i++;nextQ();};
+function endGame(){const st=G.state;st.over=true;$("#play").style.display="none";$("#result").style.display="flex";
+ const rank=[...st.teams].sort((a,b)=>b.score-a.score),w=$("#podium");w.innerHTML="";
+ const order=rank.length===1?[0]:rank.length===2?[1,0]:rank.length===3?[1,0,2]:[1,0,2,3];
+ order.forEach(i=>{const t=rank[i],d=document.createElement("div");d.className="pod p"+(i+1);d.innerHTML=`${mascot(i===0?"cheer":"happy",t.c)}<div>${TITLES[i]}</div><div>${t.name}</div><div class="big">${t.score}</div><small>答啱 ${t.ok}/${G.rounds}</small>`;w.appendChild(d);});
+ const tot=st.teams.reduce((s,t)=>s+t.ok,0);addStar(Math.max(1,Math.round(tot/2)));say("g4","全班一齊答啱 "+tot+" 題！每個人都進步咗，值得鼓勵！想挑戰更高級，可以返回設定轉程度。","cheer");boom(innerWidth*.3,innerHeight*.3,100);setTimeout(()=>boom(innerWidth*.7,innerHeight*.3,100),400);}
+$("#start").onclick=startGame;$("#again").onclick=startGame;
+$("#toSetup").onclick=()=>{$("#result").style.display="none";$("#setup").style.display="flex";};
+document.addEventListener("keydown",e=>{if(!$("#p1").classList.contains("on")||$("#play").style.display!=="grid")return;const st=G.state;const n=["A","B","C","D"].indexOf(e.key.toUpperCase());const m=n>=0?n:["1","2","3","4"].indexOf(e.key);
+ if(m>=0&&!st.locked&&m<G.q.opts.length)answer(m);else if((e.key==="Enter"||e.key===" ")&&st.locked){e.preventDefault();$("#nextq").click();}});
+addEventListener("resize",()=>{if(G.q&&$("#play").style.display==="grid")drawQ(G.q,$("#c2"));});
+
+/* init */
+buildSetup();buildObs();restart();requestAnimationFrame(draw1);
+</script>
+</body>
+</html>
